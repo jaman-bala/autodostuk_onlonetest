@@ -34,12 +34,12 @@ router = APIRouter(prefix="/auth", tags=["Авторизация и аутент
 
 @router.post("/create", summary="Создание пользователя 👨🏽‍💻")
 async def register_user(
-  #  role_superuser: RoleSuperuserDep,
+    role_superuser: RoleSuperuserDep,
     data: UserRequestAdd,
     db: DBDep,
 ):
- #   if not role_superuser:
-  #      raise RolesSuperuserHTTPException
+    if not role_superuser:
+        raise RolesSuperuserHTTPException
     try:
         user = await AuthService(db).register_user(data)
         user_response = UserResponse(
@@ -56,7 +56,7 @@ async def register_user(
         raise UserPhoneAlreadyExistsHTTPException
     except GroupsNotRegisterException:
         raise GroupNotRegisteredHTTPException
-    return {"status": "Пользователь создан", "data": user_response}
+    return {"message": "Пользователь создан", "data": user_response}
 
 
 @router.post("/login", summary="Вход в систему 👨🏽‍💻")
@@ -71,10 +71,12 @@ async def login_user(
         last_login = result["last_login"]
     except UserNotFoundException:
         raise UserNotRegisteredHTTPException
+    except PhoneAlreadyExistsException:
+        raise UserPhoneAlreadyExistsHTTPException
     except IncorrectPasswordException:
         raise IncorrectPasswordHTTPException
 
-    return {"status": "Успешный вход", "access_token": access_token, "last_login": last_login}
+    return {"message": "Успешный вход", "access_token": access_token, "last_login": last_login}
 
 
 @router.get("/me", summary="Мой профиль 👨🏽‍💻")
@@ -86,7 +88,7 @@ async def get_me(
         users = await AuthService(db).get_me(current_data)
     except ExpiredTokenException:
         raise ExpiredTokenHTTPException
-    return {"message": "Доступ разрешен", "data": users}
+    return users
 
 
 @router.get("/get_users_by_id/{user_id}", summary="Запрос по ID user")
@@ -103,7 +105,7 @@ async def get_users_by_id(
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise UserNotFoundException
-    return {"message": "Запрос по ID user", "data": users}
+    return users
 
 
 @router.get("/get_all_users", summary="Вывод всех пользователей 👨🏽‍💻")
@@ -177,14 +179,16 @@ async def change_password(
 
 
 @router.get("/get_users_by_group_id/{group_id}", summary="Вывод пользователей по группам")
-async def get_users_by_group_id(group_id: uuid.UUID, db: DBDep):
+async def get_users_by_group_id(group_id: uuid.UUID, role_admin: RoleSuperuserDep, db: DBDep):
+    if not role_admin:
+        raise RolesAdminHTTPException
     try:
         users = await AuthService(db).get_users_by_group_id(group_id)
     except ExpiredTokenException:
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise UserNotFoundException
-    return {"status": "Вывод пользователей по группам", "data": users}
+    return users
 
 
 @router.post("/refresh", summary="Обновление access_token с использованием refresh_token")

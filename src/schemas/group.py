@@ -12,7 +12,8 @@ class GroupAddRequest(BaseModel):
     period: str | None = None
 
 
-class GroupAdd(BaseModel):
+class GroupResponse(BaseModel):
+    id: uuid.UUID
     title: str | None = None
     category: str | None = None
     user_quantity: int | None = None
@@ -20,8 +21,17 @@ class GroupAdd(BaseModel):
     date_end: datetime | None = None
     period: str | None = None
     is_active: bool | None = True
-    created_date: datetime | None = None
-    updated_date: datetime | None = None
+
+
+class GroupAdd(BaseModel):
+    id: uuid.UUID
+    title: str | None = None
+    category: str | None = None
+    user_quantity: int | None = None
+    date_from: datetime | None = None
+    date_end: datetime | None = None
+    period: str | None = None
+    is_active: bool | None = True
 
 
 class GroupPatch(BaseModel):
@@ -43,7 +53,5 @@ class Group(BaseModel):
     date_end: datetime | None = None
     period: str | None = None
     is_active: bool | None = None
-    created_date: datetime | None = None
-    updated_date: datetime | None = None
 
     model_config = ConfigDict(from_attributes=True)

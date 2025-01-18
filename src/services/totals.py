@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime
 
 from src.exeptions import TotalNotFoundException
 from src.schemas.totals import TotalAddRequest, TotalAdd, TotalPatch
@@ -9,12 +8,11 @@ from src.services.base import BaseService
 class TotalsService(BaseService):
     async def ctrate_totals(self, data: TotalAddRequest):
         new_total = TotalAdd(
+            id=uuid.uuid4(),
             user_id=data.user_id,
             points=data.points,
             date_from=data.date_from,
             date_end=data.date_end,
-            created_date=datetime.utcnow(),
-            updated_date=datetime.utcnow(),
         )
         await self.db.totals.add(new_total)
         await self.db.commit()

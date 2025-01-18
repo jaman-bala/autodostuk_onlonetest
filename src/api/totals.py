@@ -9,7 +9,7 @@ from src.exeptions import (
     ObjectNotFoundException,
     TotalsNotFoundException,
 )
-from src.schemas.totals import TotalPatch, TotalAddRequest
+from src.schemas.totals import TotalPatch, TotalAddRequest, TotalResponse
 from src.services.totals import TotalsService
 
 router = APIRouter(prefix="/totals", tags=["Финальный отчёт"])
@@ -20,7 +20,14 @@ async def create_total(data: TotalAddRequest, role_admin: RoleSuperuserDep, db: 
     if not role_admin:
         raise RolesAdminHTTPException
     totals = await TotalsService(db).ctrate_totals(data)
-    return {"message": "Финальный отчёт создан", "data": totals}
+    totals_response = TotalResponse(
+        id=totals.id,
+        user_id=totals.user_id,
+        points=totals.points,
+        date_from=totals.date_from,
+        date_end=totals.date_end,
+    )
+    return {"message": "Финальный отчёт создан", "data": totals_response}
 
 
 @router.get("", summary="Запрос всех данных")
@@ -31,7 +38,7 @@ async def get_total(current_data: UserIdDep, db: DBDep):
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise TotalsNotFoundException
-    return {"message": "Запрос всех данных", "data": totals}
+    return totals
 
 
 @router.get("/{total_id}", summary="Запрос по ID")
@@ -42,7 +49,7 @@ async def get_totals_by_id(current: UserIdDep, total_id: uuid.UUID, db: DBDep):
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise TotalsNotFoundException
-    return {"message": "Запрос по ID", "data": totals}
+    return totals
 
 
 @router.patch("/{total_id}", summary="Частичное изминение данных")

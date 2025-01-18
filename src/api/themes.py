@@ -9,7 +9,7 @@ from src.exeptions import (
     ObjectNotFoundException,
     ThemesNotFoundException,
 )
-from src.schemas.themes import ThemeAddRequest, ThemePatch
+from src.schemas.themes import ThemeAddRequest, ThemePatch, ThemeResponse
 from src.services.themes import ThemesService
 
 router = APIRouter(prefix="/themes", tags=["Тема"])
@@ -24,16 +24,24 @@ async def create_theme(
     if not role_admin:
         raise RolesAdminHTTPException
     themes = await ThemesService(db).create_themes(data)
-    return {"message": "Тема создана", "data": themes}
+    themes_response = ThemeResponse(
+        id=themes.id,
+        title_ru=themes.title_ru,
+        title_kg=themes.title_kg,
+    )
+    return {"message": "Тема создана", "data": themes_response}
 
 
 @router.get("", summary="Запрос всех тем")
-async def get_theme(current_data: UserIdDep, db: DBDep):
+async def get_theme(
+    current_data: UserIdDep,
+    db: DBDep,
+):
     try:
         themes = await ThemesService(db).get_theme()
     except ExpiredTokenException:
         raise ExpiredTokenHTTPException
-    return {"message": "Доступ разрешен", "data": themes}
+    return themes
 
 
 @router.get("/{theme_id}", summary="Запрос по ID")
@@ -42,7 +50,7 @@ async def get_themes_by_id(current: UserIdDep, theme_id: uuid.UUID, db: DBDep):
         themes = ThemesService(db).get_themes_by_id(theme_id)
     except ExpiredTokenException:
         raise ExpiredTokenHTTPException
-    return {"message": "Доступ разрешен", "data": themes}
+    return themes
 
 
 @router.patch("/{theme_id}", summary="Частичное изминение данных")

@@ -3,6 +3,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 from pathlib import Path
 from fastapi_cache import FastAPICache
@@ -33,16 +34,19 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
+    lifespan=lifespan,
     docs=None,
     title=settings.PROJECT_NAME,
     version=settings.PROJECT_VERSION,
 )
 
+
 app.mount("/static/avatars", StaticFiles(directory=settings.LINK_IMAGES), name="avatars")
-app.mount("/static/photo", StaticFiles(directory=settings.LINK_IMAGES), name="photo")
+app.mount("/static/photo", StaticFiles(directory=settings.LINK_UPLOAD_PHOTO), name="photo")
 app.mount(
     "/static/upload-files", StaticFiles(directory=settings.LINK_UPLOAD_FILES), name="upload-files"
 )
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -63,9 +67,11 @@ app.include_router(router_reports)
 app.include_router(router_themes)
 app.include_router(router_totals)
 
-@app.get("/")
-def read_root():
-    return {"message": "backend"}
+
+@app.get("/", response_class=JSONResponse)
+async def read_root():
+    return {"message": "backend 🏆"}
+
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", reload=True, port=8000)  # host="0.0.0.0",

@@ -9,8 +9,10 @@ from src.services.base import BaseService
 class QuestionsService(BaseService):
     async def create_questions(
         self,
-        title: str = Form(None),
-        description: str = Form(None),
+        title_ru: str = Form(None),
+        title_kg: str = Form(None),
+        description_ru: str = Form(None),
+        description_kg: str = Form(None),
         ticket_id: uuid.UUID = Form(None),
         theme_id: uuid.UUID = Form(None),
         files: list[UploadFile] = File(None),
@@ -22,8 +24,11 @@ class QuestionsService(BaseService):
                 filenames.append(saved_filename)
 
         new_question = QuestionAdd(
-            title=title,
-            description=description,
+            id=uuid.uuid4(),
+            title_ru=title_ru,
+            title_kg=title_kg,
+            description_ru=description_ru,
+            description_kg=description_kg,
             ticket_id=ticket_id,
             theme_id=theme_id,
             files=filenames,
@@ -56,6 +61,7 @@ class QuestionsService(BaseService):
             raise QuestionNotFoundException
         await self.db.questions.edit_patch(data, exclude_unset=exclude_unset, id=question_id)
         await self.db.commit()
+        return question
 
     async def delete_question(self, question_id: uuid.UUID):
         await self.db.questions.delete(id=question_id)
@@ -65,14 +71,11 @@ class QuestionsService(BaseService):
         self, question_id: uuid.UUID, files: list[UploadFile] = File(None)
     ):
         question = await self.db.questions.get_one_or_none(id=question_id)
-
         if not question:
             raise QuestionNotFoundException
         if files:
             new_filenames = await self.db.questions.upload_files(files)
             question.files = new_filenames
-
         await self.db.questions.update(question)
         await self.db.commit()
-
-        return {"message": "Файлы успешно обновлены"}
+        return question

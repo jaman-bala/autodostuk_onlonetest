@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime
 
 from src.exeptions import TicketNotFoundException
 from src.schemas.tickets import TicketAdd, TicketAddRequest, TicketPatch
@@ -9,9 +8,8 @@ from src.services.base import BaseService
 class TicketsService(BaseService):
     async def create_tickets(self, data: TicketAddRequest):
         create_ticket = TicketAdd(
+            id=uuid.uuid4(),
             title=data.title,
-            created_date=datetime.utcnow(),
-            updated_date=datetime.utcnow(),
         )
         await self.db.tickets.add(create_ticket)
         await self.db.commit()
@@ -33,6 +31,7 @@ class TicketsService(BaseService):
             raise TicketNotFoundException
         await self.db.tickets.edit_patch(data, exclude_unset=exclude_unset, id=ticket_id)
         await self.db.commit()
+        return ticket
 
     async def delete_ticket(self, ticket_id: uuid.UUID):
         await self.db.tickets.delete(id=ticket_id)

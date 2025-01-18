@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime
 
 from src.exeptions import GroupNotFoundException
 from src.schemas.group import GroupAddRequest, GroupAdd, GroupPatch
@@ -8,7 +7,11 @@ from src.services.base import BaseService
 
 class GroupsService(BaseService):
     async def create_group(self, data: GroupAddRequest):
+        group = await self.db.groups.get_group_one(title=data.title)
+        if group:
+            raise GroupNotFoundException
         new_group = GroupAdd(
+            id=uuid.uuid4(),
             title=data.title,
             category=data.category,
             user_quantity=data.user_quantity,
@@ -16,8 +19,6 @@ class GroupsService(BaseService):
             date_end=data.date_end,
             period=data.period,
             is_active=True,
-            created_date=datetime.utcnow(),
-            updated_date=datetime.utcnow(),
         )
         await self.db.groups.add(new_group)
         await self.db.commit()

@@ -3,23 +3,41 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class QuestionAddRequest(BaseModel):
-    title: str = Field(default=None, max_length=999)
-    description: str = Field(default=None)
+    title_ru: str = Field(default=None, max_length=999)
+    title_kg: str = Field(default=None, max_length=999)
+    description_ru: str = Field(default=None)
+    description_kg: str = Field(default=None)
     ticket_id: uuid.UUID
     theme_id: uuid.UUID
 
 
+class QuestionResponse(BaseModel):
+    id: uuid.UUID
+    title_ru: str = Field(default=None, max_length=999)
+    title_kg: str = Field(default=None, max_length=999)
+    description_ru: str = Field(default=None)
+    description_kg: str = Field(default=None)
+    ticket_id: uuid.UUID
+    theme_id: uuid.UUID
+    files: list[str] | None = None
+
+
 class QuestionAdd(BaseModel):
-    title: str
-    description: str
+    id: uuid.UUID
+    title_ru: str = Field(default=None, max_length=999)
+    title_kg: str = Field(default=None, max_length=999)
+    description_ru: str = Field(default=None)
+    description_kg: str = Field(default=None)
     ticket_id: uuid.UUID
     theme_id: uuid.UUID
     files: list[str] | None = None
 
 
 class QuestionPatch(BaseModel):
-    title: str
-    description: str
+    title_ru: str = Field(default=None, max_length=999)
+    title_kg: str = Field(default=None, max_length=999)
+    description_ru: str = Field(default=None)
+    description_kg: str = Field(default=None)
     ticket_id: uuid.UUID
     theme_id: uuid.UUID
 
@@ -30,8 +48,10 @@ class QuestionPatchFile(BaseModel):
 
 class Question(BaseModel):
     id: uuid.UUID
-    title: str
-    description: str
+    title_ru: str = Field(default=None, max_length=999)
+    title_kg: str = Field(default=None, max_length=999)
+    description_ru: str = Field(default=None)
+    description_kg: str = Field(default=None)
     ticket_id: uuid.UUID
     theme_id: uuid.UUID
     files: list[str] | None = None

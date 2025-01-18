@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime
 
 from src.exeptions import ReportNotFoundException
 from src.schemas.reports import ReportAddRequest, ReportAdd, ReportPatch
@@ -9,14 +8,13 @@ from src.services.base import BaseService
 class ReportsService(BaseService):
     async def create_reports(self, data: ReportAddRequest):
         new_reports = ReportAdd(
+            id=uuid.uuid4(),
             user_id=data.user_id,
             ticket_id=data.ticket_id,
             theme_id=data.theme_id,
             points=data.points,
             date_from=data.date_from,
             date_end=data.date_end,
-            created_date=datetime.utcnow(),
-            updated_date=datetime.utcnow(),
         )
         await self.db.reports.add(new_reports)
         await self.db.commit()
@@ -42,3 +40,7 @@ class ReportsService(BaseService):
     async def delete_reports(self, report_id: uuid.UUID):
         await self.db.reports.delete(id=report_id)
         await self.db.commit()
+
+    async def get_reports_by_user_id(self, user_id: uuid.UUID):
+        reports = await self.db.reports.get_reports_and_user_id(user_id)
+        return reports

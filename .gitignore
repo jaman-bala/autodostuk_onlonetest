@@ -1,14 +1,20 @@
-idea
 .idea
 .ipynb_checkpoints
 .mypy_cache
 .vscode
 __pycache__
 .pytest_cache
+
+favenv/
+faven/
+venv
 htmlcov
 dist
 site
-.coverage*
+git/
+alembic/versions/drop/app.db
+
+.coverage
 coverage.xml
 .netlify
 test.db
@@ -16,11 +22,9 @@ log.txt
 Pipfile.lock
 env3.*
 env
-.env
-.env-test
 docs_build
 site_build
-venv
+venv/
 docs.zip
 archive.zip
 
@@ -31,3 +35,4 @@ archive.zip
 
 # macOS
 .DS_Store
+

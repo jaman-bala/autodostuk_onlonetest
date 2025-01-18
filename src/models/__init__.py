@@ -7,6 +7,7 @@ from src.models.tickets import TicketOrm
 from src.models.totals import TotalOrm
 from src.models.themes import ThemeOrm
 from src.models.payments import PaymentOrm
+from src.models.reports import ReportOrm
 
 
 __all__ = [
@@ -20,4 +21,5 @@ __all__ = [
     "ThemeOrm",
     "ImagesOrm",
     "PaymentOrm",
+    "ReportOrm",
 ]

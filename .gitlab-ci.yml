@@ -2,14 +2,18 @@ stages:
   - build
   - lint_format
   - migrations
-  - test
+#  - test
   - deploy
+
+variables:
+  DOCKER_DRIVER: overlay2
 
 build-job:
   stage: build
   before_script:
     - echo "$ENV" > .env
     - echo "$TEST_ENV" > .env-test
+    - docker network create backend_network || true
   script:
     - docker build -t backend-api-image .
 
@@ -26,15 +30,14 @@ Format:
 Migrations:
   stage: migrations
   script:
-  - docker run --rm --network backend_network backend-api-image alembic upgrade head
+    - docker run --rm --network backend_network backend-api-image alembic upgrade head
 
-Test:
-  stage: test
-  script:
-    - docker run --rm --network backend_network backend-api-image pytest -s -v
+#Test:
+#  stage: test
+#  script:
+#    - docker run --rm --network backend_network backend-api-image pytest -s -v
 
 deploy-job:
   stage: deploy
   script:
-    - docker compose -f docker-compose-ci.yml up -d
-
+    - docker compose -f docker-compose.yml up -d

@@ -19,7 +19,7 @@ class QuestionsRepository(BaseRepository):
         async with aiofiles.open(file_path, "wb") as buffer:
             content = await file.read()
             await buffer.write(content)
-        return f"/static/photo/{unique_filename}"
+        return f"{settings.LINK_UPLOAD_PHOTO}{unique_filename}"
 
     async def upload_files(self, files: list[UploadFile]) -> list[str]:
         """Сохраняет файлы и возвращает список их путей."""

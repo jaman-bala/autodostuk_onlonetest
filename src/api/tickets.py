@@ -9,7 +9,7 @@ from src.exeptions import (
     ObjectNotFoundException,
     TicketsNotFoundException,
 )
-from src.schemas.tickets import TicketAddRequest, TicketPatch
+from src.schemas.tickets import TicketAddRequest, TicketPatch, TicketResponse
 from src.services.tickets import TicketsService
 
 router = APIRouter(prefix="/tickets", tags=["Билеты"])
@@ -24,17 +24,26 @@ async def create_tickets(
     if not role_admin:
         raise RolesAdminHTTPException
     tickets = await TicketsService(db).create_tickets(data)
-    return {"message": "Билет создан", "data": tickets}
+    tickets_response = TicketResponse(
+        id=tickets.id,
+        title=tickets.title,
+    )
+    return {"message": "Билет создан", "data": tickets_response}
 
 
 @router.get("", summary="Запрос всех данных")
-async def get_tickets(current_data: UserIdDep, db: DBDep):
-    return await TicketsService(db).get_tickets()
+async def get_tickets(
+    current_data: UserIdDep,
+    db: DBDep,
+):
+    tickets = await TicketsService(db).get_tickets()
+    return tickets
 
 
 @router.get("/{ticket_id}", summary="Запрос по ID")
 async def get_tickets_by_id(current: UserIdDep, ticket_id: uuid.UUID, db: DBDep):
-    await TicketsService(db).get_tickets_by_id(ticket_id)
+    tickets = await TicketsService(db).get_tickets_by_id(ticket_id)
+    return tickets
 
 
 @router.patch("/{ticket_id}", summary="Частичное изминение данных")
@@ -53,7 +62,11 @@ async def patch_ticket(
 
 
 @router.delete("/{ticket_id}")
-async def delete_ticket(ticket_id: uuid.UUID, role_admin: RoleSuperuserDep, db: DBDep):
+async def delete_ticket(
+    ticket_id: uuid.UUID,
+    role_admin: RoleSuperuserDep,
+    db: DBDep,
+):
     if not role_admin:
         raise RolesAdminHTTPException
     try:

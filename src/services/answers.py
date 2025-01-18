@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime
 
 from src.exeptions import AnswerNotFoundException
 from src.schemas.answers import AnswerAdd, AnswerPatch, AnswerAddRequest
@@ -9,11 +8,11 @@ from src.services.base import BaseService
 class AnswersService(BaseService):
     async def create_answers(self, data: AnswerAddRequest):
         new_answer = AnswerAdd(
-            title=data.title,
+            id=uuid.uuid4(),
+            title_ru=data.title_ru,
+            title_kg=data.title_kg,
             is_correct=data.is_correct,
             question_id=data.question_id,
-            created_date=datetime.utcnow(),
-            updated_date=datetime.utcnow(),
         )
         await self.db.answers.add(new_answer)
         await self.db.commit()

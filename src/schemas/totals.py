@@ -10,7 +10,16 @@ class TotalAddRequest(BaseModel):
     date_end: date | None = None
 
 
+class TotalResponse(BaseModel):
+    id: uuid.UUID
+    user_id: uuid.UUID
+    points: int | None = None
+    date_from: date | None = None
+    date_end: date | None = None
+
+
 class TotalAdd(BaseModel):
+    id: uuid.UUID
     user_id: uuid.UUID
     points: int | None = None
     date_from: date | None = None
@@ -32,7 +41,5 @@ class Total(BaseModel):
     points: int | None = None
     date_from: date | None = None
     date_end: date | None = None
-    created_date: datetime
-    updated_date: datetime
 
     model_config = ConfigDict(from_attributes=True)

@@ -10,7 +10,7 @@ from src.exeptions import (
     AnswersNotFoundException,
 )
 from src.services.answers import AnswersService
-from src.schemas.answers import AnswerAddRequest, AnswerPatch
+from src.schemas.answers import AnswerAddRequest, AnswerPatch, AnswerResponse
 
 router = APIRouter(prefix="/answers", tags=["Ответы"])
 
@@ -25,11 +25,18 @@ async def add_answers(
         raise RolesAdminHTTPException
     try:
         answers = await AnswersService(db).create_answers(data)
+        answers_response = AnswerResponse(
+            id=answers.id,
+            title_ru=answers.title_ru,
+            title_kg=answers.title_kg,
+            is_correct=answers.is_correct,
+            question_id=answers.question_id,
+        )
     except ExpiredTokenException:
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise AnswersNotFoundException
-    return {"status": "Ответ добавлен", "data": answers}
+    return {"message": "Ответ добавлен", "data": answers_response}
 
 
 @router.get("", summary="Запрос всех данных")
@@ -40,7 +47,7 @@ async def get_answers(current_data: UserIdDep, db: DBDep):
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise AnswersNotFoundException
-    return {"status": "Запрос всех данных", "data": answers}
+    return answers
 
 
 @router.get("/{answer_id}", summary="Запрос по ID")
@@ -51,7 +58,7 @@ async def get_answer_by_id(answer_id: uuid.UUID, current_data: UserIdDep, db: DB
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise AnswersNotFoundException
-    return {"status": "Запрос по ID", "data": answers}
+    return answers
 
 
 @router.get("/by-question/{question_id}", summary="Получить ответы по question_id")
@@ -62,7 +69,7 @@ async def get_answers_by_question_id(question_id: uuid.UUID, current_data: UserI
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise AnswersNotFoundException
-    return {"status": "Получить ответы по question_id", "data": answers}
+    return answers
 
 
 @router.patch("/{answer_id}", summary="Частичное изминение")

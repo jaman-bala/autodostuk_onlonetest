@@ -23,21 +23,12 @@ from httpx import AsyncClient
     ],
 )
 async def test_auth_flow(
-<<<<<<< HEAD
     firstname,
     lastname,
     phone,
     password: str,
     expected_status: int,
     ac: AsyncClient,
-=======
-        firstname,
-        lastname,
-        phone,
-        password: str,
-        expected_status: int,
-        ac: AsyncClient,
->>>>>>> c9285ff3cd26f18c5fb9b768a6252aaaddbca9d8
 ):
     # Шаг 1: Получаем токен для авторизации
     resp_login = await ac.post(
@@ -58,19 +49,12 @@ async def test_auth_flow(
             "phone": phone,
             "password": password,
         },
-<<<<<<< HEAD
         headers={"Authorization": f"Bearer {token}" if token else ""},
     )
 
     assert (
         resp_register.status_code == expected_status
     ), f"Ошибка при регистрации: {resp_register.json()}"
-=======
-        headers={"Authorization": f"Bearer {token}" if token else ""}
-    )
-
-    assert resp_register.status_code == expected_status, f"Ошибка при регистрации: {resp_register.json()}"
->>>>>>> c9285ff3cd26f18c5fb9b768a6252aaaddbca9d8
 
     if resp_register.status_code != 200:
         return  # Если регистрация не удалась, выходим из теста
@@ -96,19 +80,11 @@ async def test_auth_flow(
     assert user["phone"] == phone, "Номер телефона не совпадает с ожидаемым."
     assert "id" in user, "Отсутствует поле 'id' в данных пользователя."
     assert "password" not in user, "Поле 'password' не должно быть в данных пользователя."
-<<<<<<< HEAD
     assert (
         "hashed_password" not in user
     ), "Поле 'hashed_password' не должно быть в данных пользователя."
-=======
-    assert "hashed_password" not in user, "Поле 'hashed_password' не должно быть в данных пользователя."
->>>>>>> c9285ff3cd26f18c5fb9b768a6252aaaddbca9d8
 
     # Шаг 4: Логаут
     resp_logout = await ac.delete("/auth/logout")
     assert resp_logout.status_code == 200, f"Ошибка при выходе: {resp_logout.json()}"
     assert "access_token" not in ac.cookies, "Токен должен быть удален из cookies."
-<<<<<<< HEAD
-=======
-
->>>>>>> c9285ff3cd26f18c5fb9b768a6252aaaddbca9d8

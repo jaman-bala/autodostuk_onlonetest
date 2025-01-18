@@ -10,7 +10,7 @@ from src.exeptions import (
     ObjectNotFoundException,
     QuestionsNotFoundException,
 )
-from src.schemas.questions import QuestionPatch
+from src.schemas.questions import QuestionPatch, QuestionResponse
 from src.services.questions import QuestionsService
 
 router = APIRouter(prefix="/questions", tags=["Вопросы"])
@@ -20,8 +20,10 @@ router = APIRouter(prefix="/questions", tags=["Вопросы"])
 async def create_question(
     db: DBDep,
     role_admin: RoleSuperuserDep,
-    title: str = Form(None),
-    description: str = Form(None),
+    title_ru: str = Form(None),
+    title_kg: str = Form(None),
+    description_ru: str = Form(None),
+    description_kg: str = Form(None),
     ticket_id: uuid.UUID = Form(None),
     theme_id: uuid.UUID = Form(None),
     files: List[UploadFile] = File(None),
@@ -30,17 +32,29 @@ async def create_question(
         raise RolesAdminHTTPException
     try:
         questions = await QuestionsService(db).create_questions(
-            title=title,
-            description=description,
+            title_ru=title_ru,
+            title_kg=title_kg,
+            description_ru=description_ru,
+            description_kg=description_kg,
             ticket_id=ticket_id,
             theme_id=theme_id,
             files=files,
+        )
+        questions_response = QuestionResponse(
+            id=questions.id,
+            title_ru=questions.title_ru,
+            title_kg=questions.title_kg,
+            description_ru=questions.description_ru,
+            description_kg=questions.description_kg,
+            ticket_id=questions.ticket_id,
+            theme_id=questions.theme_id,
+            files=questions.files,
         )
     except ExpiredTokenException:
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise QuestionsNotFoundException
-    return {"message": "Вопрос создан", "data": questions}
+    return {"message": "Вопрос создан", "data": questions_response}
 
 
 @router.get("", summary="Запрос всех вопросов")
@@ -51,7 +65,7 @@ async def get_questions(db: DBDep, current: UserIdDep):
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise QuestionsNotFoundException
-    return {"message": "Запрос всех вопросов", "data": questions}
+    return questions
 
 
 @router.get("/{question_id", summary="Запрос по ID")
@@ -62,7 +76,7 @@ async def get_questions_by_id(current: UserIdDep, question_id: uuid.UUID, db: DB
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise QuestionsNotFoundException
-    return {"message": "Запрос по ID", "data": questions}
+    return questions
 
 
 @router.get("/by-ticket/{ticket_id}", summary="Получить вопросы по ticket_id")
@@ -73,7 +87,7 @@ async def get_questions_by_ticket_id(current: UserIdDep, ticket_id: uuid.UUID, d
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise QuestionsNotFoundException
-    return {"message": "Получить вопросы по ticket_id", "data": questions}
+    return questions
 
 
 @router.patch("/{question_id}", summary="Частичное изминение данных")
@@ -107,19 +121,19 @@ async def delete_question(question_id: uuid.UUID, role_admin: RoleSuperuserDep, 
 @router.put("/{question_id}", summary="Обновление файлов для вопроса")
 async def put_question_files(
     db: DBDep,
-    role_admin: RoleSuperuserDep,
+    #  role_admin: RoleSuperuserDep,
     question_id: uuid.UUID,
     files: List[UploadFile] = File(None),
 ):
-    if not role_admin:
-        raise RolesAdminHTTPException
+    #   if not role_admin:
+    #       raise RolesAdminHTTPException
     try:
-        await QuestionsService(db).patch_questions_file(question_id, files)
+        questions = await QuestionsService(db).patch_questions_file(question_id, files)
     except ExpiredTokenException:
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise QuestionsNotFoundException
-    return {"message": "Файлы успешно обновлены"}
+    return {"message": "Файлы успешно обновлены", "data": questions}
 
 
 @router.get("/random", summary="Вывод 20 вопросов рандомно")
@@ -130,4 +144,4 @@ async def get_random_question(db: DBDep):
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise QuestionsNotFoundException
-    return {"message": "Вывод 20 вопросов рандомно", "data": randoms}
+    return randoms

@@ -1,15 +1,15 @@
-"""Create payments table
+"""up02: fix bugs
 
-Revision ID: 96ed30a1b7f8
-Revises: 4290f1c3bace
-Create Date: 2024-12-21 23:17:55.113944
+Revision ID: abc6c5f9db39
+Revises: 1a419cb59d48
+Create Date: 2024-12-30 02:09:35.772776
 
 """
 
 from typing import Sequence, Union
 
-revision: str = "96ed30a1b7f8"
-down_revision: Union[str, None] = "4290f1c3bace"
+revision: str = "abc6c5f9db39"
+down_revision: Union[str, None] = "1a419cb59d48"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

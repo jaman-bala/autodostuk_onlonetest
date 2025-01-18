@@ -45,7 +45,7 @@ class PaymentNotFoundException(AllErrorException):
 
 
 class GroupNotFoundException(AllErrorException):
-    detail = "Группа не найден"
+    detail = "Группа существует в базе"
 
 
 class AnswerNotFoundException(AllErrorException):
@@ -230,3 +230,8 @@ class RolesUserHTTPException(AllErrorHTTPException):
 class AnswerHTTPException(AllErrorHTTPException):
     status_code = 404
     detail = "Ответ не найден"
+
+
+class GroupHTTPException(AllErrorHTTPException):
+    status_code = 404
+    detail = "Такая группа существует"

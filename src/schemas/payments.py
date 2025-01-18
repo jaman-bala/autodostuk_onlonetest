@@ -1,22 +1,26 @@
 import uuid
 from pydantic import BaseModel, ConfigDict
-from datetime import datetime, date
+from datetime import date
 
 
 class PaymentAddRequest(BaseModel):
     user_id: uuid.UUID
     date_check: date
     price: int
-    created_date: datetime
-    updated_date: datetime
 
 
-class PaymentAdd(BaseModel):
+class PaymentResponse(BaseModel):
+    id: uuid.UUID
     user_id: uuid.UUID
     date_check: date
     price: int
-    created_date: datetime
-    updated_date: datetime
+
+
+class PaymentAdd(BaseModel):
+    id: uuid.UUID
+    user_id: uuid.UUID
+    date_check: date
+    price: int
 
 
 class PaymentPatch(BaseModel):
@@ -30,7 +34,5 @@ class Payment(BaseModel):
     user_id: uuid.UUID
     date_check: date
     price: int
-    created_date: datetime
-    updated_date: datetime
 
     model_config = ConfigDict(from_attributes=True)

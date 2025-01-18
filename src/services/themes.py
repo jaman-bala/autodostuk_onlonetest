@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime
 
 from src.exeptions import ThemeNotFoundException
 from src.schemas.themes import ThemeAddRequest, ThemeAdd, ThemePatch
@@ -9,9 +8,9 @@ from src.services.base import BaseService
 class ThemesService(BaseService):
     async def create_themes(self, data: ThemeAddRequest):
         new_theme = ThemeAdd(
-            title=data.title,
-            created_date=datetime.utcnow(),
-            updated_date=datetime.utcnow(),
+            id=uuid.uuid4(),
+            title_ru=data.title_ru,
+            title_kg=data.title_kg,
         )
         await self.db.themes.add(new_theme)
         await self.db.commit()

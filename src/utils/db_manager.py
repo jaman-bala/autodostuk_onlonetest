@@ -3,6 +3,7 @@ from src.repositories.images import ImagesRepository
 from src.repositories.payments import PaymentsRepository
 from src.repositories.questions import QuestionsRepository
 from src.repositories.answers import AnswersRepository
+from src.repositories.reports import ReportsRepository
 from src.repositories.themes import ThemesRepository
 from src.repositories.tickets import TicketsRepository
 from src.repositories.totals import TotalsRepository
@@ -22,7 +23,7 @@ class DBManager:
         self.groups = GroupsRepository(self.session)
         self.payments = PaymentsRepository(self.session)
         self.questions = QuestionsRepository(self.session)
-        self.reports = PaymentsRepository(self.session)
+        self.reports = ReportsRepository(self.session)
         self.themes = ThemesRepository(self.session)
         self.tickets = TicketsRepository(self.session)
         self.totals = TotalsRepository(self.session)

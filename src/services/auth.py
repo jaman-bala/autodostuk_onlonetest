@@ -18,6 +18,7 @@ from src.exeptions import (
     PhoneAlreadyExistsException,
     UserAlreadyHTTPException,
     GroupsNotRegisterException,
+    GroupNotRegisteredHTTPException,
 )
 from src.models import UsersOrm
 from src.schemas.users import (
@@ -37,7 +38,7 @@ class AuthService(BaseService):
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
     def create_access_token(self, user: UsersOrm, response: Response) -> str:
-        roles = [role.value for role in user.roles]
+        roles = [role for role in user.roles]
         data = {
             "user_id": str(user.id),
             "roles": roles,
@@ -54,11 +55,10 @@ class AuthService(BaseService):
             samesite="None",
             secure=True,
         )
-
         return access_token
 
     def create_refresh_token(self, user: UsersOrm, response: Response) -> str:
-        roles = [role.value for role in user.roles]
+        roles = [role for role in user.roles]
         data = {
             "user_id": str(user.id),
             "roles": roles,
@@ -74,7 +74,6 @@ class AuthService(BaseService):
             samesite="None",
             secure=True,
         )
-
         return refresh_token
 
     def hash_password(self, password: str) -> str:
@@ -101,10 +100,6 @@ class AuthService(BaseService):
         if existing_user:
             raise PhoneAlreadyExistsException
 
-        group = await self.db.users.get_user_group_id(group_id=data.group_id)
-        if group:
-            raise GroupsNotRegisterException
-
         hashed_password = self.hash_password(data.password)
         new_user_data = UserAdd(
             id=uuid.uuid4(),
@@ -116,16 +111,16 @@ class AuthService(BaseService):
             group_id=data.group_id,
             is_active=True,
             roles=data.roles,
-            created_date=datetime.utcnow(),
-            updated_date=datetime.utcnow(),
         )
 
         try:
             await self.db.users.add(new_user_data)
             await self.db.commit()
             return new_user_data
-        except ObjectAlreadyExistsException as exc:
-            raise UserAlreadyExistsException from exc
+        except ObjectAlreadyExistsException:
+            raise UserAlreadyExistsException
+        except GroupsNotRegisterException:
+            raise GroupNotRegisteredHTTPException
 
     async def get_me(self, user_id: UUID):
         try:
@@ -150,9 +145,9 @@ class AuthService(BaseService):
         return users
 
     async def login_user(self, data: UserRequestLogin, response: Response):
-        user = await self.db.users.get_user_phone_number_with_hashed_password(phone=data.phone)
+        user = await self.db.users.get_user_none(phone=data.phone)
         if not user:
-            raise PhoneAlreadyExistsException
+            raise UserNotFoundException
         if not self.verify_password(data.password, user.hashed_password):
             raise IncorrectPasswordHTTPException
         user.last_login = datetime.utcnow()

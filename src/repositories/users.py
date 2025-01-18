@@ -42,6 +42,12 @@ class UsersRepository(BaseRepository):
             return None
         return models[0]
 
+    async def get_user_none(self, phone: str):
+        query = select(self.model).filter_by(phone=phone)
+        result = await self.session.execute(query)
+        user = result.scalars().first()
+        return user
+
     async def update_user_hashed_password(self, user_id: int, hashed_password: str):
         query = (
             update(self.model)
@@ -54,3 +60,9 @@ class UsersRepository(BaseRepository):
         query = select(self.model).where(self.model.group_id == group_id)
         result = await self.session.execute(query)
         return result.scalars().all()
+
+    async def get_user_group_id_none(self, group_id: uuid.UUID):
+        query = select(self.model).filter_by(group_id=group_id)
+        result = await self.session.execute(query)
+        group = result.scalars().first()
+        return group
