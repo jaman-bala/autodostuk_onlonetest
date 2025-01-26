@@ -1,27 +1,34 @@
 import uuid
-from pydantic import BaseModel, ConfigDict
+from typing import Optional
+from pydantic import BaseModel, ConfigDict, Field, field_validator, ValidationInfo
 
 
-class TicketAddRequest(BaseModel):
-    title: str | None = None
+class TicketAddRequestDTO(BaseModel):
+    title: Optional[str] = Field(None, max_length=999)
+
+    @field_validator("title")
+    def check_empty_field(cls, value: Optional[str], info: ValidationInfo) -> Optional[str]:
+        if value is not None and value.strip() == "":
+            raise ValueError(f"{info.field_name} cannot be an empty string")
+        return value
 
 
-class TicketResponse(BaseModel):
+class TicketResponseDTO(BaseModel):
     id: uuid.UUID
-    title: str | None = None
+    title: Optional[str] = Field(None, max_length=999)
 
 
-class TicketAdd(BaseModel):
+class TicketAddDTO(BaseModel):
     id: uuid.UUID
-    title: str | None = None
+    title: Optional[str] = Field(None, max_length=999)
 
 
-class TicketPatch(BaseModel):
-    title: str | None = None
+class TicketPatchDTO(BaseModel):
+    title: Optional[str] = Field(None, max_length=999)
 
 
-class Ticket(BaseModel):
+class TicketDTO(BaseModel):
     id: uuid.UUID
-    title: str | None = None
+    title: Optional[str] = Field(None, max_length=999)
 
     model_config = ConfigDict(from_attributes=True)

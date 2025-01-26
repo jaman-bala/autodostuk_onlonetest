@@ -9,15 +9,15 @@ from src.exeptions import (
     ObjectNotFoundException,
     PaymentsNotFoundException,
 )
-from src.schemas.payments import PaymentAddRequest, PaymentPatch, PaymentResponse
+from src.schemas.payments import PaymentAddRequestDTO, PaymentPatchDTO, PaymentResponseDTO
 from src.services.payments import PaymentsService
 
-router = APIRouter(prefix="/payments", tags=["Платёж"])
+router = APIRouter(prefix="/payments", tags=["Payment"])
 
 
-@router.post("", summary="Добавить платёж")
+@router.post("", summary="Add payment")
 async def create_payments(
-    data: PaymentAddRequest,
+    data: PaymentAddRequestDTO,
     role_admin: RoleSuperuserDep,
     db: DBDep,
 ):
@@ -25,20 +25,15 @@ async def create_payments(
         raise RolesAdminHTTPException
     try:
         payments = await PaymentsService(db).create_payments(data)
-        payments_response = PaymentResponse(
-            id=payments.id,
-            user_id=payments.user_id,
-            date_check=payments.date_check,
-            price=payments.price,
-        )
+        payments_response = PaymentResponseDTO(**payments.model_dump())
     except ExpiredTokenException:
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise PaymentsNotFoundException
-    return {"message": "Платёж создан", "data": payments_response}
+    return {"message": "Payment created", "data": payments_response}
 
 
-@router.get("", summary="Запрос всех данных")
+@router.get("", summary="Request all data")
 async def get_payments(current: UserIdDep, db: DBDep):
     try:
         payments = await PaymentsService(db).get_payments()
@@ -49,7 +44,7 @@ async def get_payments(current: UserIdDep, db: DBDep):
     return payments
 
 
-@router.get("/{payment_id}", summary="Запрос по ID")
+@router.get("/{payment_id}", summary="Request by ID")
 async def get_by_payments_id(
     current_data: UserIdDep,
     payment_id: uuid.UUID,
@@ -64,9 +59,9 @@ async def get_by_payments_id(
     return payments
 
 
-@router.patch("/{payment_id}", summary="Частичное изминение данных")
+@router.patch("/{payment_id}", summary="Partial data change")
 async def patch_payments(
-    payment_id: uuid.UUID, role_admin: RoleSuperuserDep, data: PaymentPatch, db: DBDep
+    payment_id: uuid.UUID, role_admin: RoleSuperuserDep, data: PaymentPatchDTO, db: DBDep
 ):
     if not role_admin:
         raise RolesAdminHTTPException
@@ -76,10 +71,10 @@ async def patch_payments(
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise PaymentsNotFoundException
-    return {"message": "Данные частично изменены", "data": payments}
+    return {"message": "Data partially changed", "data": payments}
 
 
-@router.delete("/{payment_id}", summary="Удаление данных")
+@router.delete("/{payment_id}", summary="Deleting data")
 async def delete_payments(payment_id: uuid.UUID, role_admin: RoleSuperuserDep, db: DBDep):
     if not role_admin:
         raise RolesAdminHTTPException
@@ -89,10 +84,10 @@ async def delete_payments(payment_id: uuid.UUID, role_admin: RoleSuperuserDep, d
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise PaymentsNotFoundException
-    return {"message": "Данные удалены"}
+    return {"message": "Data deleted"}
 
 
-@router.get("/by_users/{user_id}", summary="Получить платёж по пользователю")
+@router.get("/by_users/{user_id}", summary="Receive payment by user")
 async def get_payments_by_user_id(
     current: UserIdDep,
     user_id: uuid.UUID,

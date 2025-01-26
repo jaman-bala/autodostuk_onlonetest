@@ -3,7 +3,7 @@ from uuid import UUID
 
 from src.services.images import ImagesService
 
-router = APIRouter(prefix="/images", tags=["Изображения пользователей"])
+router = APIRouter(prefix="/images", tags=["User Images"])
 
 
 @router.post("/upload/{user_id}")
@@ -12,7 +12,7 @@ async def upload_image(
     file: UploadFile = File(...),
 ):
     avatar = await ImagesService().upload_image(user_id, file)
-    return {"status": "Изображение добавлено", "avatar": avatar}
+    return {"status": "Image added", "avatar": avatar}
 
 
 @router.get("/images/{user_id}")
@@ -27,7 +27,7 @@ async def update_image(
     file: UploadFile = File(...),
 ):
     avatar = await ImagesService().update_image(user_id, file)
-    return {"status": "Изображение обновлено", "avatar": avatar}
+    return {"status": "Image updated", "avatar": avatar}
 
 
 @router.delete("/delete/{user_id}")

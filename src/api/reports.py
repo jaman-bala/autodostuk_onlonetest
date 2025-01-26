@@ -10,54 +10,56 @@ from src.exeptions import (
     UserNotFoundException,
     ReportsNotFoundException,
 )
-from src.schemas.reports import ReportAddRequest, ReportPatch, ReportResponse
+from src.schemas.reports import ReportAddRequestDTO, ReportPatchDTO, ReportResponseDTO
 from src.services.reports import ReportsService
 
-router = APIRouter(prefix="/reports", tags=["Отчёт"])
+router = APIRouter(prefix="/reports", tags=["Report"])
 
 
-@router.post("", summary="Добавление отчёта")
+@router.post("", summary="Adding a report")
 async def create_report(
-    data: ReportAddRequest,
+    data: ReportAddRequestDTO,
     current: UserIdDep,
     db: DBDep,
 ):
     try:
         reports = await ReportsService(db).create_reports(data)
-        reports_response = ReportResponse(
-            id=reports.id,
-            user_id=reports.user_id,
-            ticket_id=reports.ticket_id,
-            theme_id=reports.theme_id,
-            points=reports.points,
-            date_from=reports.date_from,
-            date_end=reports.date_end,
-        )
+        reports_response = ReportResponseDTO(**reports.model_dump())
     except ExpiredTokenException:
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise ReportsNotFoundException
-    return {"message": "Отчёт добавлен", "data": reports_response}
+    return {"message": "Report added", "data": reports_response}
 
 
-@router.get("", summary="Запрос всех данных")
+@router.get("", summary="Request all data")
 async def get_report(
     current: UserIdDep,
     db: DBDep,
 ):
-    reports = await ReportsService(db).get_reports()
+    try:
+        reports = await ReportsService(db).get_reports()
+    except ExpiredTokenException:
+        raise ExpiredTokenHTTPException
+    except ObjectNotFoundException:
+        raise ReportsNotFoundException
     return reports
 
 
-@router.get("/{report_id", summary="Запрос по ID")
+@router.get("/{report_id", summary="Request by ID")
 async def get_reports_by_id(current: UserIdDep, report_id: uuid.UUID, db: DBDep):
-    reports = await ReportsService(db).get_reports_by_id(report_id)
+    try:
+        reports = await ReportsService(db).get_reports_by_id(report_id)
+    except ExpiredTokenException:
+        raise ExpiredTokenHTTPException
+    except ObjectNotFoundException:
+        raise ReportsNotFoundException
     return reports
 
 
-@router.patch("/{report_id}", summary="Частичное изминение")
+@router.patch("/{report_id}", summary="Partial change")
 async def patch_report(
-    report_id: uuid.UUID, role_admin: RoleSuperuserDep, data: ReportPatch, db: DBDep
+    report_id: uuid.UUID, role_admin: RoleSuperuserDep, data: ReportPatchDTO, db: DBDep
 ):
     if not role_admin:
         raise RolesAdminHTTPException
@@ -67,10 +69,10 @@ async def patch_report(
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise ReportsNotFoundException
-    return {"message": "Данные частично изменены", "data": reports}
+    return {"message": "Data partially changed", "data": reports}
 
 
-@router.delete("/{report_id}", summary="Удаление отчёта")
+@router.delete("/{report_id}", summary="Deleting a report")
 async def delete_report(report_id: uuid.UUID, role_admin: RoleSuperuserDep, db: DBDep):
     if not role_admin:
         raise RolesAdminHTTPException
@@ -80,19 +82,19 @@ async def delete_report(report_id: uuid.UUID, role_admin: RoleSuperuserDep, db: 
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise UserNotFoundException
-    return {"message": "Отчёт удален"}
+    return {"message": "Report deleted"}
 
 
-@router.get("/get_reports_by_user_id/{user_id}", summary="Вывод отчёта по пользователю")
+@router.get("/get_reports_by_user_id/{user_id}", summary="Outputting a report on the user")
 async def get_reports_by_user_id(
     current: UserIdDep,
     user_id: uuid.UUID,
     db: DBDep,
 ):
     try:
-        reports = await ReportsService(db).get_reports_by_user_id(user_id)
+        reports_by_users = await ReportsService(db).get_reports_by_user_id(user_id)
     except ExpiredTokenException:
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise UserNotFoundException
-    return reports
+    return reports_by_users

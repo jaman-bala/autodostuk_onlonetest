@@ -1,13 +1,13 @@
 import uuid
 
 from src.exeptions import ReportNotFoundException
-from src.schemas.reports import ReportAddRequest, ReportAdd, ReportPatch
+from src.schemas.reports import ReportAddRequestDTO, ReportAddDTO, ReportPatchDTO
 from src.services.base import BaseService
 
 
 class ReportsService(BaseService):
-    async def create_reports(self, data: ReportAddRequest):
-        new_reports = ReportAdd(
+    async def create_reports(self, data: ReportAddRequestDTO):
+        new_reports = ReportAddDTO(
             id=uuid.uuid4(),
             user_id=data.user_id,
             ticket_id=data.ticket_id,
@@ -29,18 +29,19 @@ class ReportsService(BaseService):
         return reports
 
     async def patch_reports(
-        self, report_id: uuid.UUID, data: ReportPatch, exclude_unset: bool = False
+        self, report_id: uuid.UUID, data: ReportPatchDTO, exclude_unset: bool = False
     ):
-        report = await self.db.reports.get_one_or_none(id=report_id)
-        if not report:
+        reports = await self.db.reports.get_one_or_none(id=report_id)
+        if not reports:
             raise ReportNotFoundException
         await self.db.reports.edit_patch(data, exclude_unset=exclude_unset, id=report_id)
         await self.db.commit()
+        return reports
 
     async def delete_reports(self, report_id: uuid.UUID):
         await self.db.reports.delete(id=report_id)
         await self.db.commit()
 
     async def get_reports_by_user_id(self, user_id: uuid.UUID):
-        reports = await self.db.reports.get_reports_and_user_id(user_id)
-        return reports
+        reports_by_users = await self.db.reports.get_reports_and_user_id(user_id)
+        return reports_by_users

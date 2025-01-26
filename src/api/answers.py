@@ -10,36 +10,30 @@ from src.exeptions import (
     AnswersNotFoundException,
 )
 from src.services.answers import AnswersService
-from src.schemas.answers import AnswerAddRequest, AnswerPatch, AnswerResponse
+from src.schemas.answers import AnswerAddRequestDTO, AnswerPatchDTO, AnswerResponseDTO
 
-router = APIRouter(prefix="/answers", tags=["Ответы"])
+router = APIRouter(prefix="/answers", tags=["Answers"])
 
 
-@router.post("", summary="Добавление ответа")
+@router.post("", summary="Adding a reply")
 async def add_answers(
-    data: AnswerAddRequest,
     role_admin: RoleSuperuserDep,
     db: DBDep,
+    data: AnswerAddRequestDTO,
 ):
     if not role_admin:
         raise RolesAdminHTTPException
     try:
         answers = await AnswersService(db).create_answers(data)
-        answers_response = AnswerResponse(
-            id=answers.id,
-            title_ru=answers.title_ru,
-            title_kg=answers.title_kg,
-            is_correct=answers.is_correct,
-            question_id=answers.question_id,
-        )
+        answers_response = AnswerResponseDTO(**answers.model_dump())
     except ExpiredTokenException:
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise AnswersNotFoundException
-    return {"message": "Ответ добавлен", "data": answers_response}
+    return {"message": "Answer added", "data": answers_response}
 
 
-@router.get("", summary="Запрос всех данных")
+@router.get("", summary="Request all data")
 async def get_answers(current_data: UserIdDep, db: DBDep):
     try:
         answers = await AnswersService(db).get_answers()
@@ -50,7 +44,7 @@ async def get_answers(current_data: UserIdDep, db: DBDep):
     return answers
 
 
-@router.get("/{answer_id}", summary="Запрос по ID")
+@router.get("/{answer_id}", summary="Request by ID")
 async def get_answer_by_id(answer_id: uuid.UUID, current_data: UserIdDep, db: DBDep):
     try:
         answers = await AnswersService(db).get_answer_id(answer_id)
@@ -61,7 +55,7 @@ async def get_answer_by_id(answer_id: uuid.UUID, current_data: UserIdDep, db: DB
     return answers
 
 
-@router.get("/by-question/{question_id}", summary="Получить ответы по question_id")
+@router.get("/by-question/{question_id}", summary="Get answers by question_id")
 async def get_answers_by_question_id(question_id: uuid.UUID, current_data: UserIdDep, db: DBDep):
     try:
         answers = await AnswersService(db).get_answers_by_question_id(question_id)
@@ -72,9 +66,9 @@ async def get_answers_by_question_id(question_id: uuid.UUID, current_data: UserI
     return answers
 
 
-@router.patch("/{answer_id}", summary="Частичное изминение")
+@router.patch("/{answer_id}", summary="Partial change")
 async def update_answer(
-    answer_id: uuid.UUID, role_admin: RoleSuperuserDep, data: AnswerPatch, db: DBDep
+    answer_id: uuid.UUID, role_admin: RoleSuperuserDep, data: AnswerPatchDTO, db: DBDep
 ):
     if not role_admin:
         raise RolesAdminHTTPException
@@ -84,10 +78,10 @@ async def update_answer(
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise AnswersNotFoundException
-    return {"message": "Данные честично изменены", "data": answers}
+    return {"message": "The data has been honestly changed", "data": answers}
 
 
-@router.delete("/{answer_id}", summary="Удаление ответа")
+@router.delete("/{answer_id}", summary="Deleting a reply")
 async def delete_answer(answer_id: uuid.UUID, role_admin: RoleSuperuserDep, db: DBDep):
     if not role_admin:
         raise RolesAdminHTTPException
@@ -97,4 +91,4 @@ async def delete_answer(answer_id: uuid.UUID, role_admin: RoleSuperuserDep, db: 
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise AnswersNotFoundException
-    return {"message": "Данные удалены"}
+    return {"message": "Data deleted"}

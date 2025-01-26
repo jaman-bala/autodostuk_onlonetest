@@ -8,7 +8,6 @@ from datetime import date
 from src.database import Base
 
 
-# TODO: Модель Группы
 class GroupOrm(Base):
     __tablename__ = "groups"
 
@@ -18,7 +17,7 @@ class GroupOrm(Base):
     user_quantity: Mapped[int | None] = mapped_column(Integer, default=0)
     date_from: Mapped[date] = mapped_column(Date)
     date_end: Mapped[date] = mapped_column(Date)
-    period: Mapped[str | None] = mapped_column(String())  # TODO период обучения
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)  # TODO: Активность группы
+    period: Mapped[str | None] = mapped_column(String())
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     users = relationship("UsersOrm", back_populates="group", cascade="all, delete-orphan")

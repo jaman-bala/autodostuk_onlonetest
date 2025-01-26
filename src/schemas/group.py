@@ -1,57 +1,59 @@
 import uuid
-from pydantic import BaseModel, ConfigDict
+from typing import Optional
+
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 
 
-class GroupAddRequest(BaseModel):
-    title: str | None = None
-    category: str | None = None
-    user_quantity: int | None = None
-    date_from: datetime | None = None
-    date_end: datetime | None = None
-    period: str | None = None
+class GroupAddRequestDTO(BaseModel):
+    title: Optional[str] = Field(None, max_length=599)
+    category: Optional[str] = Field(None, max_length=599)
+    user_quantity: Optional[int] = Field(None, max_length=3)
+    date_from: Optional[datetime] = Field(None)
+    date_end: Optional[datetime] = Field(None)
+    period: Optional[str] = Field(None)
 
 
-class GroupResponse(BaseModel):
+class GroupResponseDTO(BaseModel):
     id: uuid.UUID
-    title: str | None = None
-    category: str | None = None
-    user_quantity: int | None = None
-    date_from: datetime | None = None
-    date_end: datetime | None = None
-    period: str | None = None
+    title: Optional[str] = Field(None, max_length=599)
+    category: Optional[str] = Field(None, max_length=599)
+    user_quantity: Optional[int] = Field(None, max_length=3)
+    date_from: Optional[datetime] = Field(None)
+    date_end: Optional[datetime] = Field(None)
+    period: Optional[str] = Field(None)
     is_active: bool | None = True
 
 
-class GroupAdd(BaseModel):
+class GroupAddDTO(BaseModel):
     id: uuid.UUID
-    title: str | None = None
-    category: str | None = None
-    user_quantity: int | None = None
-    date_from: datetime | None = None
-    date_end: datetime | None = None
-    period: str | None = None
+    title: Optional[str] = Field(None, max_length=599)
+    category: Optional[str] = Field(None, max_length=599)
+    user_quantity: Optional[int] = Field(None, max_length=3)
+    date_from: Optional[datetime] = Field(None)
+    date_end: Optional[datetime] = Field(None)
+    period: Optional[str] = Field(None)
     is_active: bool | None = True
 
 
-class GroupPatch(BaseModel):
-    title: str | None = None
-    category: str | None = None
-    user_quantity: int | None = None
-    date_from: datetime | None = None
-    date_end: datetime | None = None
-    period: str | None = None
+class GroupPatchDTO(BaseModel):
+    title: Optional[str] = Field(None, max_length=599)
+    category: Optional[str] = Field(None, max_length=599)
+    user_quantity: Optional[int] = Field(None, max_length=3)
+    date_from: Optional[datetime] = Field(None)
+    date_end: Optional[datetime] = Field(None)
+    period: Optional[str] = Field(None)
     is_active: bool | None = None
 
 
-class Group(BaseModel):
+class GroupDTO(BaseModel):
     id: uuid.UUID
-    title: str | None = None
-    category: str | None = None
-    user_quantity: int | None = None
-    date_from: datetime | None = None
-    date_end: datetime | None = None
-    period: str | None = None
+    title: Optional[str] = Field(None, max_length=599)
+    category: Optional[str] = Field(None, max_length=599)
+    user_quantity: Optional[int] = Field(None, max_length=3)
+    date_from: Optional[datetime] = Field(None)
+    date_end: Optional[datetime] = Field(None)
+    period: Optional[str] = Field(None)
     is_active: bool | None = None
 
     model_config = ConfigDict(from_attributes=True)

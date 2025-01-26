@@ -15,7 +15,10 @@ class ReportOrm(Base):
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE")
     )
     ticket_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("tickets.id", ondelete="CASCADE"), nullable=True, default=None
+        UUID(as_uuid=True),
+        ForeignKey("tickets.id", ondelete="CASCADE"),
+        nullable=True,
+        default=None,
     )
     theme_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("themes.id", ondelete="CASCADE"), nullable=True, default=None

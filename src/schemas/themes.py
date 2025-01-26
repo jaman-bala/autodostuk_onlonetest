@@ -1,32 +1,39 @@
 import uuid
-from pydantic import BaseModel, ConfigDict
+from typing import Optional
+from pydantic import BaseModel, ConfigDict, Field, field_validator, ValidationInfo
 
 
-class ThemeAddRequest(BaseModel):
-    title_ru: str | None = None
-    title_kg: str | None = None
+class ThemeAddRequestDTO(BaseModel):
+    title_ru: Optional[str] = Field(max_length=599)
+    title_kg: Optional[str] = Field(max_length=599)
 
 
-class ThemeResponse(BaseModel):
+class ThemeResponseDTO(BaseModel):
     id: uuid.UUID
-    title_ru: str | None = None
-    title_kg: str | None = None
+    title_ru: Optional[str] = Field(max_length=599)
+    title_kg: Optional[str] = Field(max_length=599)
+
+    @field_validator("title_ru", "title_kg")
+    def check_empty_fields(cls, value: Optional[str], info: ValidationInfo) -> Optional[str]:
+        if value is not None and value.strip() == "":
+            raise ValueError(f"{info.field_name} cannot be an empty string")
+        return value
 
 
-class ThemeAdd(BaseModel):
+class ThemeAddDTO(BaseModel):
     id: uuid.UUID
-    title_ru: str | None = None
-    title_kg: str | None = None
+    title_ru: Optional[str] = Field(max_length=599)
+    title_kg: Optional[str] = Field(max_length=599)
 
 
-class ThemePatch(BaseModel):
-    title_ru: str | None = None
-    title_kg: str | None = None
+class ThemePatchDTO(BaseModel):
+    title_ru: Optional[str] = Field(max_length=599)
+    title_kg: Optional[str] = Field(max_length=599)
 
 
-class Theme(BaseModel):
+class ThemeDTO(BaseModel):
     id: uuid.UUID
-    title_ru: str | None = None
-    title_kg: str | None = None
+    title_ru: Optional[str] = Field(max_length=599)
+    title_kg: Optional[str] = Field(max_length=599)
 
     model_config = ConfigDict(from_attributes=True)

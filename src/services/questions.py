@@ -2,7 +2,7 @@ import uuid
 from fastapi import Form, UploadFile, File
 
 from src.exeptions import QuestionNotFoundException
-from src.schemas.questions import QuestionPatch, QuestionAdd
+from src.schemas.questions import QuestionPatchDTO, QuestionAddDTO
 from src.services.base import BaseService
 
 
@@ -23,7 +23,7 @@ class QuestionsService(BaseService):
                 saved_filename = await self.db.questions.save_photo(file)
                 filenames.append(saved_filename)
 
-        new_question = QuestionAdd(
+        new_questions = QuestionAddDTO(
             id=uuid.uuid4(),
             title_ru=title_ru,
             title_kg=title_kg,
@@ -33,9 +33,9 @@ class QuestionsService(BaseService):
             theme_id=theme_id,
             files=filenames,
         )
-        await self.db.questions.add(new_question)
+        await self.db.questions.add(new_questions)
         await self.db.commit()
-        return new_question
+        return new_questions
 
     async def get_questions(self):
         questions = await self.db.questions.get_all()
@@ -54,14 +54,14 @@ class QuestionsService(BaseService):
         return random_questions
 
     async def patch_questions(
-        self, question_id: uuid.UUID, data: QuestionPatch, exclude_unset: bool = False
+        self, question_id: uuid.UUID, data: QuestionPatchDTO, exclude_unset: bool = False
     ):
-        question = await self.db.questions.get_one_or_none(id=question_id)
-        if not question:
+        questions = await self.db.questions.get_one_or_none(id=question_id)
+        if not questions:
             raise QuestionNotFoundException
         await self.db.questions.edit_patch(data, exclude_unset=exclude_unset, id=question_id)
         await self.db.commit()
-        return question
+        return questions
 
     async def delete_question(self, question_id: uuid.UUID):
         await self.db.questions.delete(id=question_id)
@@ -70,12 +70,12 @@ class QuestionsService(BaseService):
     async def patch_questions_file(
         self, question_id: uuid.UUID, files: list[UploadFile] = File(None)
     ):
-        question = await self.db.questions.get_one_or_none(id=question_id)
-        if not question:
+        questions = await self.db.questions.get_one_or_none(id=question_id)
+        if not questions:
             raise QuestionNotFoundException
         if files:
             new_filenames = await self.db.questions.upload_files(files)
-            question.files = new_filenames
-        await self.db.questions.update(question)
+            questions.files = new_filenames
+        await self.db.questions.update(questions)
         await self.db.commit()
-        return question
+        return questions

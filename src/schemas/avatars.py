@@ -4,17 +4,17 @@ from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 
 
-class AvatarRequestAdd(BaseModel):
+class AvatarRequestAddDTO(BaseModel):
     filename: str | None = None
     file_path: str | None = None
 
 
-class AvatarAdd(BaseModel):
+class AvatarAddDTO(BaseModel):
     id: int
     file_path: str | None = None
 
 
-class Avatar(BaseModel):
+class AvatarDTO(BaseModel):
     id: int
     file_path: str | None = None
     created_at: datetime | None = None
@@ -23,21 +23,21 @@ class Avatar(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class ImagesAddRequest(BaseModel):
+class ImagesAddRequestDTO(BaseModel):
     path: str | None = None
 
 
-class ImagesAdd(BaseModel):
+class ImagesAddDTO(BaseModel):
     path: str | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
 
 
-class ImagesPatch(BaseModel):
+class ImagesPatchDTO(BaseModel):
     path: str | None = None
 
 
-class Images(BaseModel):
+class ImagesDTO(BaseModel):
     id: uuid.UUID
     path: str | None = None
     created_at: datetime | None = None
@@ -46,12 +46,12 @@ class Images(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class QuestionsImagesAdd(BaseModel):
+class QuestionsImagesAddDTO(BaseModel):
     question_id: uuid.UUID
     image_id: uuid.UUID
 
 
-class QuestionsImages(BaseModel):
+class QuestionsImagesDTO(BaseModel):
     id: uuid.UUID
     question_id: uuid.UUID
     image_id: uuid.UUID

@@ -1,52 +1,65 @@
 import uuid
-from pydantic import BaseModel, ConfigDict
+from typing import Optional
+from pydantic import BaseModel, ConfigDict, Field, field_validator, ValidationInfo
 from datetime import datetime
 
 
-class ReportAddRequest(BaseModel):
+class ReportAddRequestDTO(BaseModel):
     user_id: uuid.UUID
-    ticket_id: uuid.UUID | None = None
-    theme_id: uuid.UUID | None = None
-    points: int | None = None
+    ticket_id: Optional[uuid.UUID] = Field(None)
+    theme_id: Optional[uuid.UUID] = Field(None)
+    points: Optional[int] = Field(None)
     date_from: datetime
     date_end: datetime
 
+    @field_validator("date_end")
+    def check_dates(cls, value: datetime, info: ValidationInfo) -> datetime:
+        if value <= info.data["date_from"]:
+            raise ValueError("date_end must be after date_from")
+        return value
 
-class ReportResponse(BaseModel):
+    @field_validator("points")
+    def check_points(cls, value: Optional[int]) -> Optional[int]:
+        if value is not None and value < 0:
+            raise ValueError("points must be a positive integer")
+        return value
+
+
+class ReportResponseDTO(BaseModel):
     id: uuid.UUID
     user_id: uuid.UUID
-    ticket_id: uuid.UUID | None = None
-    theme_id: uuid.UUID | None = None
-    points: int | None = None
+    ticket_id: Optional[uuid.UUID] = Field(None)
+    theme_id: Optional[uuid.UUID] = Field(None)
+    points: Optional[int] = Field(None)
     date_from: datetime
     date_end: datetime
 
 
-class ReportAdd(BaseModel):
+class ReportAddDTO(BaseModel):
     id: uuid.UUID
     user_id: uuid.UUID
-    ticket_id: uuid.UUID | None = None
-    theme_id: uuid.UUID | None = None
-    points: int | None = None
+    ticket_id: Optional[uuid.UUID] = Field(None)
+    theme_id: Optional[uuid.UUID] = Field(None)
+    points: Optional[int] = Field(None)
     date_from: datetime
     date_end: datetime
 
 
-class ReportPatch(BaseModel):
+class ReportPatchDTO(BaseModel):
     user_id: uuid.UUID
-    ticket_id: uuid.UUID | None = None
-    theme_id: uuid.UUID | None = None
-    points: int | None = None
+    ticket_id: Optional[uuid.UUID] = Field(None)
+    theme_id: Optional[uuid.UUID] = Field(None)
+    points: Optional[int] = Field(None)
     date_from: datetime
     date_end: datetime
 
 
-class Report(BaseModel):
+class ReportDTO(BaseModel):
     id: uuid.UUID
     user_id: uuid.UUID
-    ticket_id: uuid.UUID | None = None
-    theme_id: uuid.UUID | None = None
-    points: int | None = None
+    ticket_id: Optional[uuid.UUID] = Field(None)
+    theme_id: Optional[uuid.UUID] = Field(None)
+    points: Optional[int] = Field(None)
     date_from: datetime
     date_end: datetime
 

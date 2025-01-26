@@ -14,6 +14,8 @@ class BaseRepository:
 
     def __init__(self, session):
         self.session = session
+        if self.mapper is None:
+            raise ValueError("Mapper not defined for repository")
 
     async def get_filtered(self, *filter, **filter_by):
         query = select(self.model).filter(*filter).filter_by(**filter_by)
@@ -55,10 +57,10 @@ class BaseRepository:
         result = await self.session.execute(query)
         qs = result.scalars().all()
         if not qs:
-            raise HTTPException(status_code=404, detail="Объект не найден")
+            raise HTTPException(status_code=404, detail="Object not found")
 
         if len(qs) > 1:
-            raise HTTPException(status_code=422, detail="Найдено несколько объектов")
+            raise HTTPException(status_code=422, detail="Several objects found")
 
         update_data_stmt = update(self.model).filter_by(**filter_by).values(**data.model_dump())
         await self.session.execute(update_data_stmt)
@@ -68,10 +70,10 @@ class BaseRepository:
         result = await self.session.execute(query)
         qs = result.scalars().all()
         if not qs:
-            raise HTTPException(status_code=404, detail="Объект не найден")
+            raise HTTPException(status_code=404, detail="Object not found")
 
         if len(qs) > 1:
-            raise HTTPException(status_code=422, detail="Найдено несколько объектов")
+            raise HTTPException(status_code=422, detail="Several objects found")
 
         update_stmt = (
             update(self.model)
@@ -85,10 +87,10 @@ class BaseRepository:
         result = await self.session.execute(query)
         qs = result.scalars().all()
         if not qs:
-            raise HTTPException(status_code=404, detail="Объект не найден")
+            raise HTTPException(status_code=404, detail="Object not found")
 
         if len(qs) > 1:
-            raise HTTPException(status_code=422, detail="Найдено несколько объектов")
+            raise HTTPException(status_code=422, detail="Several objects found")
 
         delete_stmt = delete(self.model).filter_by(**filter_by)
         await self.session.execute(delete_stmt)

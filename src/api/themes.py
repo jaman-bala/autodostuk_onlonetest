@@ -9,30 +9,29 @@ from src.exeptions import (
     ObjectNotFoundException,
     ThemesNotFoundException,
 )
-from src.schemas.themes import ThemeAddRequest, ThemePatch, ThemeResponse
+from src.schemas.themes import ThemeAddRequestDTO, ThemePatchDTO, ThemeResponseDTO
 from src.services.themes import ThemesService
 
-router = APIRouter(prefix="/themes", tags=["Тема"])
+router = APIRouter(prefix="/themes", tags=["Themes"])
 
 
-@router.post("", summary="Создание темы")
+@router.post("", summary="Create a theme")
 async def create_theme(
-    data: ThemeAddRequest,
+    data: ThemeAddRequestDTO,
     role_admin: RoleSuperuserDep,
     db: DBDep,
 ):
     if not role_admin:
         raise RolesAdminHTTPException
-    themes = await ThemesService(db).create_themes(data)
-    themes_response = ThemeResponse(
-        id=themes.id,
-        title_ru=themes.title_ru,
-        title_kg=themes.title_kg,
-    )
-    return {"message": "Тема создана", "data": themes_response}
+    try:
+        themes = await ThemesService(db).create_themes(data)
+        themes_response = ThemeResponseDTO(**themes.model_dump())
+    except ExpiredTokenException:
+        raise ExpiredTokenHTTPException
+    return {"message": "theme created", "data": themes_response}
 
 
-@router.get("", summary="Запрос всех тем")
+@router.get("", summary="Request all theme")
 async def get_theme(
     current_data: UserIdDep,
     db: DBDep,
@@ -44,7 +43,7 @@ async def get_theme(
     return themes
 
 
-@router.get("/{theme_id}", summary="Запрос по ID")
+@router.get("/{theme_id}", summary="Request by ID")
 async def get_themes_by_id(current: UserIdDep, theme_id: uuid.UUID, db: DBDep):
     try:
         themes = ThemesService(db).get_themes_by_id(theme_id)
@@ -53,9 +52,9 @@ async def get_themes_by_id(current: UserIdDep, theme_id: uuid.UUID, db: DBDep):
     return themes
 
 
-@router.patch("/{theme_id}", summary="Частичное изминение данных")
+@router.patch("/{theme_id}", summary="Partial data change")
 async def patch_theme(
-    theme_id: uuid.UUID, role_admin: RoleSuperuserDep, data: ThemePatch, db: DBDep
+    theme_id: uuid.UUID, role_admin: RoleSuperuserDep, data: ThemePatchDTO, db: DBDep
 ):
     if not role_admin:
         raise RolesAdminHTTPException
@@ -65,10 +64,10 @@ async def patch_theme(
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise ThemesNotFoundException
-    return {"message": "Данные частично изменены", "data": themes}
+    return {"message": "Data partially changed", "data": themes}
 
 
-@router.delete("/{theme_id}", summary="Удаление данных")
+@router.delete("/{theme_id}", summary="Deleting data")
 async def delete_theme(theme_id: uuid.UUID, role_admin: RoleSuperuserDep, db: DBDep):
     if not role_admin:
         raise RolesAdminHTTPException
@@ -78,4 +77,4 @@ async def delete_theme(theme_id: uuid.UUID, role_admin: RoleSuperuserDep, db: DB
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise ThemesNotFoundException
-    return {"message": "Данные удалены"}
+    return {"message": "Data deleted"}

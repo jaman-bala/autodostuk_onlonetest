@@ -20,48 +20,39 @@ from src.exeptions import (
     GroupNotRegisteredHTTPException,
 )
 from src.schemas.users import (
-    UserRequestLogin,
-    UserRequestUpdatePassword,
-    UserPatchRequest,
-    UserRequestAdd,
-    UserResponse,
+    UserRequestLoginDTO,
+    UserRequestUpdatePasswordDTO,
+    UserPatchRequestDTO,
+    UserRequestAddDTO,
+    UserResponseDTO,
 )
 from src.services.auth import AuthService
 
 
-router = APIRouter(prefix="/auth", tags=["Авторизация и аутентификация"])
+router = APIRouter(prefix="/auth", tags=["Authorization and authentication"])
 
 
-@router.post("/create", summary="Создание пользователя 👨🏽‍💻")
+@router.post("/create", summary="Creating a user 👨🏽‍💻")
 async def register_user(
     role_superuser: RoleSuperuserDep,
-    data: UserRequestAdd,
+    data: UserRequestAddDTO,
     db: DBDep,
 ):
     if not role_superuser:
         raise RolesSuperuserHTTPException
     try:
-        user = await AuthService(db).register_user(data)
-        user_response = UserResponse(
-            id=user.id,
-            firstname=user.firstname,
-            lastname=user.lastname,
-            phone=user.phone,
-            is_ready=user.is_ready,
-            group_id=user.group_id,
-            is_active=user.is_active,
-            roles=user.roles,
-        )
+        users = await AuthService(db).register_user(data)
+        users_response = UserResponseDTO(**users.model_dump())
     except PhoneAlreadyExistsException:
         raise UserPhoneAlreadyExistsHTTPException
     except GroupsNotRegisterException:
         raise GroupNotRegisteredHTTPException
-    return {"message": "Пользователь создан", "data": user_response}
+    return {"message": "User created", "data": users_response}
 
 
-@router.post("/login", summary="Вход в систему 👨🏽‍💻")
+@router.post("/login", summary="Login 👨🏽‍💻")
 async def login_user(
-    data: UserRequestLogin,
+    data: UserRequestLoginDTO,
     response: Response,
     db: DBDep,
 ):
@@ -76,10 +67,10 @@ async def login_user(
     except IncorrectPasswordException:
         raise IncorrectPasswordHTTPException
 
-    return {"message": "Успешный вход", "access_token": access_token, "last_login": last_login}
+    return {"message": "Success login", "access_token": access_token, "last_login": last_login}
 
 
-@router.get("/me", summary="Мой профиль 👨🏽‍💻")
+@router.get("/me", summary="My profile👨🏽‍💻")
 async def get_me(
     current_data: UserIdDep,
     db: DBDep,
@@ -91,7 +82,7 @@ async def get_me(
     return users
 
 
-@router.get("/get_users_by_id/{user_id}", summary="Запрос по ID user")
+@router.get("/get_users_by_id/{user_id}", summary="Request by ID user")
 async def get_users_by_id(
     role_admin: RoleSuperuserDep,
     user_id: uuid.UUID,
@@ -108,7 +99,7 @@ async def get_users_by_id(
     return users
 
 
-@router.get("/get_all_users", summary="Вывод всех пользователей 👨🏽‍💻")
+@router.get("/get_all_users", summary="Output of all users 👨🏽‍💻")
 async def get_all_users(
     role_admin: RoleSuperuserDep,
     db: DBDep,
@@ -123,20 +114,20 @@ async def get_all_users(
         raise UserNotFoundException
 
 
-@router.delete("/logout", summary="Выход из системы 👨🏽‍💻")
+@router.delete("/logout", summary="Logout 👨🏽‍💻")
 async def logout_user(
     response: Response,
 ):
     response.delete_cookie("access_token")
-    return {"message": "Выход из системы успешен"}
+    return {"message": "Logout success"}
 
 
-@router.patch("/update/{user_id}", summary="Частичное изменение 👨🏽‍💻")
+@router.patch("/update/{user_id}", summary="Partial change 👨🏽‍💻")
 async def update_user(
     user_id: UUID,
     role_admin: RoleSuperuserDep,
     db: DBDep,
-    data: UserPatchRequest,
+    data: UserPatchRequestDTO,
 ):
     if not role_admin:
         raise RolesAdminHTTPException
@@ -146,10 +137,10 @@ async def update_user(
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise UserNotFoundException
-    return {"message": "Данные пользователя частично изменены", "data": users}
+    return {"message": "User data has been partially changed", "data": users}
 
 
-@router.delete("/{user_id}", summary="Удаление пользователя 👨🏽‍💻")
+@router.delete("/{user_id}", summary="Deleting a user 👨🏽‍💻")
 async def delete_user(user_id: uuid.UUID, role_admin: RoleSuperuserDep, db: DBDep):
     if not role_admin:
         raise RolesAdminHTTPException
@@ -159,14 +150,14 @@ async def delete_user(user_id: uuid.UUID, role_admin: RoleSuperuserDep, db: DBDe
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise UserNotFoundException
-    return {"message": "Пользователь удален"}
+    return {"message": "User deleted"}
 
 
-@router.put("/change_password/{user_id}", summary="Сброс пароля")
+@router.put("/change_password/{user_id}", summary="Password reset")
 async def change_password(
     user_id: UUID,
     role_admin: RoleSuperuserDep,
-    data: UserRequestUpdatePassword,
+    data: UserRequestUpdatePasswordDTO,
     db: DBDep,
 ):
     if not role_admin:
@@ -175,23 +166,23 @@ async def change_password(
         await AuthService(db).change_password(user_id, data)
     except ExpiredTokenException:
         raise ExpiredTokenHTTPException
-    return {"message": "Пароль успешно изменён"}
+    return {"message": "Password successfully changed"}
 
 
-@router.get("/get_users_by_group_id/{group_id}", summary="Вывод пользователей по группам")
+@router.get("/get_users_by_group_id/{group_id}", summary="Displaying users by groups")
 async def get_users_by_group_id(group_id: uuid.UUID, role_admin: RoleSuperuserDep, db: DBDep):
     if not role_admin:
         raise RolesAdminHTTPException
     try:
-        users = await AuthService(db).get_users_by_group_id(group_id)
+        users_by_groups = await AuthService(db).get_users_by_group_id(group_id)
     except ExpiredTokenException:
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise UserNotFoundException
-    return users
+    return users_by_groups
 
 
-@router.post("/refresh", summary="Обновление access_token с использованием refresh_token")
+@router.post("/refresh", summary="Refresh access_token using refresh_token")
 async def refresh_access_token(
     request: Request,
     response: Response,
@@ -201,7 +192,7 @@ async def refresh_access_token(
         refresh_token = request.cookies.get("refresh_token")
         result = await AuthService(db).refresh_access_token(refresh_token, response)
         return {
-            "status": "Токен обновлен",
+            "status": "Token updated",
             "access_token": result["access_token"],
         }
     except ExpiredTokenHTTPException:

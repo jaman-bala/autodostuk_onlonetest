@@ -9,28 +9,27 @@ from src.exeptions import (
     ObjectNotFoundException,
     TotalsNotFoundException,
 )
-from src.schemas.totals import TotalPatch, TotalAddRequest, TotalResponse
+from src.schemas.totals import TotalPatchDTO, TotalAddRequestDTO, TotalResponseDTO
 from src.services.totals import TotalsService
 
-router = APIRouter(prefix="/totals", tags=["Финальный отчёт"])
+router = APIRouter(prefix="/totals", tags=["Final report"])
 
 
-@router.post("", summary="Добавление финального отчёта")
-async def create_total(data: TotalAddRequest, role_admin: RoleSuperuserDep, db: DBDep):
+@router.post("", summary="Adding a final report")
+async def create_total(data: TotalAddRequestDTO, role_admin: RoleSuperuserDep, db: DBDep):
     if not role_admin:
         raise RolesAdminHTTPException
-    totals = await TotalsService(db).ctrate_totals(data)
-    totals_response = TotalResponse(
-        id=totals.id,
-        user_id=totals.user_id,
-        points=totals.points,
-        date_from=totals.date_from,
-        date_end=totals.date_end,
-    )
-    return {"message": "Финальный отчёт создан", "data": totals_response}
+    try:
+        totals = await TotalsService(db).ctrate_totals(data)
+        totals_response = TotalResponseDTO(**totals.model_dump())
+    except ExpiredTokenException:
+        raise ExpiredTokenHTTPException
+    except ObjectNotFoundException:
+        raise TotalsNotFoundException
+    return {"message": "The final report has been created", "data": totals_response}
 
 
-@router.get("", summary="Запрос всех данных")
+@router.get("", summary="Request all data")
 async def get_total(current_data: UserIdDep, db: DBDep):
     try:
         totals = await TotalsService(db).get_totals()
@@ -41,7 +40,7 @@ async def get_total(current_data: UserIdDep, db: DBDep):
     return totals
 
 
-@router.get("/{total_id}", summary="Запрос по ID")
+@router.get("/{total_id}", summary="Request by ID")
 async def get_totals_by_id(current: UserIdDep, total_id: uuid.UUID, db: DBDep):
     try:
         totals = TotalsService(db).get_totals_by_id(total_id)
@@ -52,9 +51,9 @@ async def get_totals_by_id(current: UserIdDep, total_id: uuid.UUID, db: DBDep):
     return totals
 
 
-@router.patch("/{total_id}", summary="Частичное изминение данных")
+@router.patch("/{total_id}", summary="Partial data change")
 async def patch_total(
-    total_id: uuid.UUID, role_admin: RoleSuperuserDep, data: TotalPatch, db: DBDep
+    total_id: uuid.UUID, role_admin: RoleSuperuserDep, data: TotalPatchDTO, db: DBDep
 ):
     if not role_admin:
         raise RolesAdminHTTPException
@@ -64,10 +63,10 @@ async def patch_total(
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise TotalsNotFoundException
-    return {"message": "Данные частично изменены", "data": totals}
+    return {"message": "Data partially changed", "data": totals}
 
 
-@router.delete("/{total_id}", summary="Удаление данных")
+@router.delete("/{total_id}", summary="Deleting data")
 async def delete_total(total_id: uuid.UUID, role_admin: RoleSuperuserDep, db: DBDep):
     if not role_admin:
         raise RolesAdminHTTPException
@@ -77,4 +76,4 @@ async def delete_total(total_id: uuid.UUID, role_admin: RoleSuperuserDep, db: DB
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise TotalsNotFoundException
-    return {"message": "Данные удалены"}
+    return {"message": "Data deleted"}

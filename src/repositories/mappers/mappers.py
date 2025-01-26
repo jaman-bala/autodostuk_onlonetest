@@ -11,68 +11,68 @@ from src.models import ThemeOrm
 from src.models.payments import PaymentOrm
 from src.models.reports import ReportOrm
 
-from src.schemas.answers import Answer
-from src.schemas.avatars import Avatar, Images
-from src.schemas.group import Group
-from src.schemas.payments import Payment
-from src.schemas.questions import Question
-from src.schemas.reports import Report
-from src.schemas.themes import Theme
-from src.schemas.tickets import Ticket
-from src.schemas.totals import Total
-from src.schemas.users import User
+from src.schemas.answers import AnswerDTO
+from src.schemas.avatars import AvatarDTO, ImagesDTO
+from src.schemas.group import GroupDTO
+from src.schemas.payments import PaymentDTO
+from src.schemas.questions import QuestionDTO
+from src.schemas.reports import ReportDTO
+from src.schemas.themes import ThemeDTO
+from src.schemas.tickets import TicketDTO
+from src.schemas.totals import TotalDTO
+from src.schemas.users import UserDTO
 
 
 class UserDataMapper(DataMapper):
     db_model = UsersOrm
-    schema = User
+    schema = UserDTO
 
 
 class AvatarDataMapper(DataMapper):
     db_model = AvatarOrm
-    schema = Avatar
+    schema = AvatarDTO
 
 
 class ImageDataMapper(DataMapper):
     db_model = ImagesOrm
-    schema = Images
+    schema = ImagesDTO
 
 
 class QuestionDataMapper(DataMapper):
     db_model = QuestionOrm
-    schema = Question
+    schema = QuestionDTO
 
 
 class AnswerDataMapper(DataMapper):
     db_model = AnswerOrm
-    schema = Answer
+    schema = AnswerDTO
 
 
 class GroupDataMapper(DataMapper):
     db_model = GroupOrm
-    schema = Group
+    schema = GroupDTO
 
 
 class TicketDataMapper(DataMapper):
     db_model = TicketOrm
-    schema = Ticket
+    schema = TicketDTO
 
 
 class TotalDataMapper(DataMapper):
     db_model = TotalOrm
-    schema = Total
+    schema = TotalDTO
 
 
 class ThemeDataMapper(DataMapper):
     db_model = ThemeOrm
-    schema = Theme
+    schema = ThemeDTO
 
 
 class PaymentDataMapper(DataMapper):
     db_model = PaymentOrm
-    schema = Payment
+    schema = PaymentDTO
 
 
 class ReportDataMapper(DataMapper):
     db_model = ReportOrm
-    schema = Report
+    schema = ReportDTO

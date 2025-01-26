@@ -22,11 +22,11 @@ from src.exeptions import (
 )
 from src.models import UsersOrm
 from src.schemas.users import (
-    UserAdd,
-    UserPatchRequest,
-    UserRequestAdd,
-    UserRequestLogin,
-    UserRequestUpdatePassword,
+    UserAddDTO,
+    UserPatchRequestDTO,
+    UserRequestAddDTO,
+    UserRequestLoginDTO,
+    UserRequestUpdatePasswordDTO,
 )
 from src.services.base import BaseService
 from src.services.images import ImagesService
@@ -93,7 +93,7 @@ class AuthService(BaseService):
         except jwt.exceptions.DecodeError:
             raise IncorrectTokenHTTPException
 
-    async def register_user(self, data: UserRequestAdd):
+    async def register_user(self, data: UserRequestAddDTO):
         existing_user = await self.db.users.get_user_phone_number_with_hashed_password(
             phone=data.phone
         )
@@ -101,7 +101,7 @@ class AuthService(BaseService):
             raise PhoneAlreadyExistsException
 
         hashed_password = self.hash_password(data.password)
-        new_user_data = UserAdd(
+        new_user_data = UserAddDTO(
             id=uuid.uuid4(),
             firstname=data.firstname,
             lastname=data.lastname,
@@ -144,10 +144,11 @@ class AuthService(BaseService):
             raise UserAlreadyHTTPException
         return users
 
-    async def login_user(self, data: UserRequestLogin, response: Response):
+    async def login_user(self, data: UserRequestLoginDTO, response: Response):
         user = await self.db.users.get_user_none(phone=data.phone)
         if not user:
             raise UserNotFoundException
+
         if not self.verify_password(data.password, user.hashed_password):
             raise IncorrectPasswordHTTPException
         user.last_login = datetime.utcnow()
@@ -196,15 +197,17 @@ class AuthService(BaseService):
             raise IncorrectTokenHTTPException
         return users
 
-    async def patch_user(self, user_id: UUID, data: UserPatchRequest, exclude_unset: bool = False):
-        user = await self.db.users.get_one_or_none(id=user_id)
-        if not user:
+    async def patch_user(
+        self, user_id: UUID, data: UserPatchRequestDTO, exclude_unset: bool = False
+    ):
+        users = await self.db.users.get_one_or_none(id=user_id)
+        if not users:
             raise UserNotFoundException
         await self.db.users.edit_patch(data, exclude_unset, id=user_id)
         await self.db.commit()
-        return user
+        return users
 
-    async def change_password(self, user_id: UUID, data: UserRequestUpdatePassword):
+    async def change_password(self, user_id: UUID, data: UserRequestUpdatePasswordDTO):
         user = await self.db.users.get_one(id=user_id)
         if not user:
             raise UserNotFoundException
@@ -217,5 +220,5 @@ class AuthService(BaseService):
         await self.db.commit()
 
     async def get_users_by_group_id(self, group_id: uuid.UUID):
-        users = await self.db.users.get_users_by_group_id(group_id)
-        return users
+        users_by_groups = await self.db.users.get_users_by_group_id(group_id)
+        return users_by_groups

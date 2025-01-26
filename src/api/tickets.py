@@ -1,6 +1,8 @@
 import uuid
 from fastapi import APIRouter
+from fastapi_cache.decorator import cache
 
+from src.init import redis_manager
 from src.api.dependencies import DBDep, RoleSuperuserDep, UserIdDep
 from src.exeptions import (
     RolesAdminHTTPException,
@@ -9,46 +11,61 @@ from src.exeptions import (
     ObjectNotFoundException,
     TicketsNotFoundException,
 )
-from src.schemas.tickets import TicketAddRequest, TicketPatch, TicketResponse
+from src.schemas.tickets import TicketAddRequestDTO, TicketPatchDTO, TicketResponseDTO
 from src.services.tickets import TicketsService
 
-router = APIRouter(prefix="/tickets", tags=["Билеты"])
+router = APIRouter(prefix="/tickets", tags=["Tickets"])
 
 
-@router.post("", summary="Добавить билет")
+@router.post("", summary="Add ticket")
 async def create_tickets(
-    data: TicketAddRequest,
     role_admin: RoleSuperuserDep,
     db: DBDep,
+    data: TicketAddRequestDTO,
 ):
     if not role_admin:
         raise RolesAdminHTTPException
-    tickets = await TicketsService(db).create_tickets(data)
-    tickets_response = TicketResponse(
-        id=tickets.id,
-        title=tickets.title,
-    )
-    return {"message": "Билет создан", "data": tickets_response}
+    try:
+        tickets = await TicketsService(db).create_tickets(data)
+        await redis_manager.delete("tickets:get_all")
+        tickets_response = TicketResponseDTO(**tickets.model_dump())
+    except ExpiredTokenException:
+        raise ExpiredTokenHTTPException
+    except ObjectNotFoundException:
+        raise TicketsNotFoundException
+    return {"message": "Ticket created", "data": tickets_response}
 
 
-@router.get("", summary="Запрос всех данных")
+@router.get("", summary="Request all data")
+@cache(expire=300)
 async def get_tickets(
     current_data: UserIdDep,
     db: DBDep,
 ):
-    tickets = await TicketsService(db).get_tickets()
+    try:
+        tickets = await TicketsService(db).get_tickets()
+    except ExpiredTokenException:
+        raise ExpiredTokenHTTPException
+    except ObjectNotFoundException:
+        raise TicketsNotFoundException
     return tickets
 
 
-@router.get("/{ticket_id}", summary="Запрос по ID")
+@router.get("/{ticket_id}", summary="Request by ID")
+@cache(expire=30)
 async def get_tickets_by_id(current: UserIdDep, ticket_id: uuid.UUID, db: DBDep):
-    tickets = await TicketsService(db).get_tickets_by_id(ticket_id)
+    try:
+        tickets = await TicketsService(db).get_tickets_by_id(ticket_id)
+    except ExpiredTokenException:
+        raise ExpiredTokenHTTPException
+    except ObjectNotFoundException:
+        raise TicketsNotFoundException
     return tickets
 
 
-@router.patch("/{ticket_id}", summary="Частичное изминение данных")
+@router.patch("/{ticket_id}", summary="Partial data change")
 async def patch_ticket(
-    ticket_id: uuid.UUID, role_admin: RoleSuperuserDep, data: TicketPatch, db: DBDep
+    ticket_id: uuid.UUID, role_admin: RoleSuperuserDep, data: TicketPatchDTO, db: DBDep
 ):
     if not role_admin:
         raise RolesAdminHTTPException
@@ -58,10 +75,10 @@ async def patch_ticket(
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise TicketsNotFoundException
-    return {"message": "Данные частично изменены", "data": tickets}
+    return {"message": "Data partially changed", "data": tickets}
 
 
-@router.delete("/{ticket_id}")
+@router.delete("/{ticket_id}", summary="Deleted data")
 async def delete_ticket(
     ticket_id: uuid.UUID,
     role_admin: RoleSuperuserDep,
@@ -75,4 +92,4 @@ async def delete_ticket(
         raise ExpiredTokenHTTPException
     except ObjectNotFoundException:
         raise TicketsNotFoundException
-    return {"message": "Билет удален"}
+    return {"message": "Data deleted"}
