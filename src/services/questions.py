@@ -73,9 +73,11 @@ class QuestionsService(BaseService):
         questions = await self.db.questions.get_one_or_none(id=question_id)
         if not questions:
             raise QuestionNotFoundException
+
         if files:
             new_filenames = await self.db.questions.upload_files(files)
             questions.files = new_filenames
+
         await self.db.questions.update(questions)
         await self.db.commit()
         return questions

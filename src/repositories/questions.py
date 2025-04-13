@@ -26,7 +26,7 @@ class QuestionsRepository(BaseRepository):
         file_paths = []
         for file in files:
             unique_filename = f"{uuid.uuid4()}_{file.filename}"
-            file_path = f"{settings.LINK_UPLOAD_FILES}/{unique_filename}"
+            file_path = f"{settings.LINK_UPLOAD_PHOTO}/{unique_filename}"
             async with aiofiles.open(file_path, "wb") as buffer:
                 content = await file.read()
                 await buffer.write(content)
